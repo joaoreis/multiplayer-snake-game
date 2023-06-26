@@ -69,7 +69,7 @@ class MapGrid extends Canvas {
         this.cellSize,
         this.cellSize
       );
-      board.fillStyle = isMainPlayer ? "black" : "blue";
+      board.fillStyle = isMainPlayer ? "blue" : "black";
       board.fill();
     });
   }
@@ -124,7 +124,7 @@ state.socket = io("http://localhost:3000");
 state.socket.on("mapState", (mapState) => {
   board.clear();
   for (const [key, snake] of Object.entries(mapState.snakes)) {
-    const isMainPlayer = key === state.nickname;
+    const isMainPlayer = key == nickname();
     board.drawSnake(snake.vertebraes, isMainPlayer);
   }
   mapState.targetCells.forEach((target) => {
