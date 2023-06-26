@@ -70,17 +70,6 @@ body {
   overflow: hidden;
   position: relative;
 }
-
-#app {
-  font-family: "Avenir", Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 10px;
-  width: 100%;
-}
-
 .column {
   display: inline-block;
   width: calc(30% - 5px);
