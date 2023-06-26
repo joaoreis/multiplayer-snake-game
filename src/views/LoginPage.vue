@@ -22,8 +22,11 @@
 import { ref } from "vue";
 import { useUserStore } from "@/storage/user";
 import { computed } from "vue";
+import router from "@/router";
 
-const { getLobbyName } = useUserStore();
+const storage = useUserStore();
+
+const { getLobbyName, lobbyId } = storage;
 
 const nickname = ref("");
 const roomName = ref("");
@@ -33,7 +36,16 @@ const roomText = computed(() => {
 });
 
 const criarSala = async () => {
-  getLobbyName(nickname.value, roomName.value);
+  try {
+    await getLobbyName(nickname.value, roomName.value);
+  } catch (error) {
+    alert(error.message);
+  } finally {
+    console.log(lobbyId());
+    if (lobbyId()) {
+      router.push({ name: "game" });
+    }
+  }
 };
 </script>
 

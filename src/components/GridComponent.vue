@@ -2,18 +2,21 @@
   <div>
     <canvas
       id="snake-canvas"
-      :width="boardSizePx"
-      :height="boardSizePx"
+      :width="boardSizePx()"
+      :height="boardSizePx()"
     ></canvas>
-    {{ gameScores.length }}
-    <div class="scores" v-if="gameScores.length > 0">
-      Scores: {{ gameScores[0] }}
+    {{ state.gameScores.length }}
+    <div class="scores" v-if="state.gameScores.length > 0">
+      Scores: {{ state.gameScores[0] }}
     </div>
   </div>
 </template>
 
-<script>
+<script setup>
 import constants from "@/utils/constants";
+import { useUserStore } from "@/storage/user";
+import { onMounted, defineProps, reactive, onBeforeMount, watch } from "vue";
+// import { mapState } from "pinia";
 
 class Canvas {
   constructor() {
@@ -97,111 +100,97 @@ class MapGrid extends Canvas {
 
 let board = null;
 
-export default {
-  name: "SnakeCanvas",
-  props: {
-    cellSize: Number,
-    boardSize: Number,
-    speed: Number,
-    isPlaying: Boolean,
-    addScores: Function,
-    scores: Number,
-  },
-  data() {
-    return {
-      userToken: null,
-      userId: "risso",
-      socket: null,
-      showGameScore: false,
-      gameScores: [],
-    };
-  },
-  computed: {
-    boardSizePx() {
-      return this.cellSize * this.boardSize;
-    },
-  },
-  async created() {
-    try {
-      const response = await fetch(
-        `http://localhost:3000/login/${this.userId}`
-      );
-      const jsonParsed = await response.json();
-      this.lobbyId = jsonParsed.data.lobbyId;
-    } catch (error) {
-      console.log(error);
+const props = defineProps({
+  cellSize: Number,
+  boardSize: Number,
+  speed: Number,
+  isPlaying: Boolean,
+  addScores: Function,
+  scores: Number,
+});
+
+const { lobbyId, nickname } = useUserStore();
+
+const state = reactive({
+  userToken: null,
+  socket: null,
+  showGameScore: false,
+  gameScores: [],
+});
+
+// eslint-disable-next-line no-undef
+state.socket = io("http://localhost:3000");
+
+state.socket.on("mapState", (mapState) => {
+  board.clear();
+  for (const [key, snake] of Object.entries(mapState.snakes)) {
+    const isMainPlayer = key === state.nickname;
+    board.drawSnake(snake.vertebraes, isMainPlayer);
+  }
+  mapState.targetCells.forEach((target) => {
+    board.drawTarget(target);
+  });
+});
+
+state.socket.on("gameFinished", () => {
+  state.gameScores = [10, 20];
+});
+
+const boardSizePx = () => {
+  return props.cellSize * props.boardSize;
+};
+
+onMounted(() => {
+  const boardPx = boardSizePx();
+
+  board = new MapGrid(props.boardSize, boardPx, props.cellSize, props.speed);
+  window.addEventListener("keydown", onKeyPress);
+});
+
+onBeforeMount(() => {
+  board = null;
+  window.removeEventListener("keydown", onKeyPress);
+});
+
+watch({
+  isPlaying(value) {
+    board.stop();
+    if (value) {
+      board.startGame();
     }
-    // eslint-disable-next-line no-undef
-    this.socket = io("http://localhost:3000");
-
-    this.socket.on("mapState", (mapState) => {
-      board.clear();
-      for (const [key, snake] of Object.entries(mapState.snakes)) {
-        const isMainPlayer = key === this.userId;
-        board.drawSnake(snake.vertebraes, isMainPlayer);
-      }
-      mapState.targetCells.forEach((target) => {
-        board.drawTarget(target);
-      });
-    });
-
-    this.socket.on("gameFinished", () => {
-      console.log("joao 20cm");
-      this.gameScores = [10, 20];
-    });
   },
-  mounted() {
-    board = new MapGrid(
-      this.boardSize,
-      this.boardSizePx,
-      this.cellSize,
-      this.speed
-    );
-    window.addEventListener("keydown", this.onKeyPress);
-  },
-  beforeUnmount() {
-    board = null;
-    window.removeEventListener("keydown", this.onKeyPress);
-  },
-  watch: {
-    isPlaying(value) {
-      board.stop();
-      if (value) {
-        board.startGame();
-      }
-    },
-  },
-  methods: {
-    onKeyPress(event) {
-      const newDirection = constants.find((c) => c.keyCode === event.keyCode);
+});
 
-      if (!newDirection) {
-        return;
-      }
+const onKeyPress = (event) => {
+  const newDirection = constants.find((c) => c.keyCode === event.keyCode);
 
-      this.sendKeyPressedToSocket(newDirection.direction);
-    },
-    async startGame() {
-      try {
-        await fetch(`http://localhost:3000/${this.lobbyId}/start`);
-      } catch (error) {
-        console.log(error);
-      } finally {
-        board.startGame();
-      }
-    },
-    async sendKeyPressedToSocket(keyPress) {
-      if (!board.running) await this.startGame();
+  if (!newDirection) {
+    return;
+  }
 
-      const body = {
-        lobbyId: this.lobbyId,
-        userId: this.userId,
-        userMovement: keyPress,
-      };
+  sendKeyPressedToSocket(newDirection.direction);
+};
 
-      this.socket.emit("move", body);
-    },
-  },
+const startGame = async () => {
+  try {
+    await fetch(`http://localhost:3000/${lobbyId()}/start`);
+  } catch (error) {
+    console.log(error);
+  } finally {
+    board.startGame();
+  }
+};
+
+const sendKeyPressedToSocket = async (keyPress) => {
+  if (!board.running) await startGame();
+
+  const body = {
+    lobbyId: lobbyId(),
+    userId: nickname(),
+    userMovement: keyPress,
+  };
+
+  state.socket.emit("move", body);
 };
 </script>
 
