@@ -25,7 +25,7 @@ class Canvas {
   }
 }
 
-class Coordenates {
+class Coordinates {
   constructor(x = 0, y = 0) {
     this.x = x;
     this.y = y;
@@ -40,7 +40,7 @@ class MapGrid extends Canvas {
   speed;
   constructor(boardSize = 0, boardSizePx = 0, cellSize, speed) {
     super();
-    this.boardSize = new Coordenates(boardSize, boardSize);
+    this.boardSize = new Coordinates(boardSize, boardSize);
     this.boardSizePx = boardSizePx;
     this.running = false;
     this.cellSize = cellSize;
@@ -54,10 +54,10 @@ class MapGrid extends Canvas {
     let middleX = Math.round(this.boardSize.x / 2);
     let middleY = Math.round(this.boardSize.y / 2);
 
-    return new Coordenates(middleX, middleY);
+    return new Coordinates(middleX, middleY);
   }
   /**
-   * @param {Coordenates} vertebraes
+   * @param {Coordinates} vertebraes
    * @param {boolean} isMainPlayer
    */
   drawSnake(vertebraes, isMainPlayer) {
