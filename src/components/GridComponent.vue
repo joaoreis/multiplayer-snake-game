@@ -9,16 +9,13 @@
     <div class="scores" v-if="state.gameScores.length > 0">
       Scores: {{ state.gameScores[0] }}
     </div>
-    <button id="play-btn" v-on:click="startGame">
-      {{ isPlaying ? "Stop" : "Play" }}
-    </button>
   </div>
 </template>
 
 <script setup>
 import constants from "@/utils/constants";
 import { useUserStore } from "@/storage/user";
-import { onMounted, defineProps, reactive, onBeforeMount } from "vue";
+import { onMounted, defineProps, reactive, onBeforeMount, watch } from "vue";
 // import { mapState } from "pinia";
 
 class Canvas {
@@ -107,6 +104,7 @@ const props = defineProps({
   cellSize: Number,
   boardSize: Number,
   speed: Number,
+  isPlaying: Boolean,
   addScores: Function,
   scores: Number,
 });
@@ -122,8 +120,6 @@ const state = reactive({
 
 // eslint-disable-next-line no-undef
 state.socket = io("http://localhost:3000");
-
-state.socket.emit("joinLobby", { lobbyId: lobbyId(), userId: nickname() });
 
 state.socket.on("mapState", (mapState) => {
   board.clear();
@@ -156,6 +152,15 @@ onBeforeMount(() => {
   window.removeEventListener("keydown", onKeyPress);
 });
 
+watch({
+  isPlaying(value) {
+    board.stop();
+    if (value) {
+      board.startGame();
+    }
+  },
+});
+
 const onKeyPress = (event) => {
   const newDirection = constants.find((c) => c.keyCode === event.keyCode);
 
@@ -166,7 +171,19 @@ const onKeyPress = (event) => {
   sendKeyPressedToSocket(newDirection.direction);
 };
 
+const startGame = async () => {
+  try {
+    await fetch(`http://localhost:3000/${lobbyId()}/start`);
+  } catch (error) {
+    console.log(error);
+  } finally {
+    board.startGame();
+  }
+};
+
 const sendKeyPressedToSocket = async (keyPress) => {
+  if (!board.running) await startGame();
+
   const body = {
     lobbyId: lobbyId(),
     userId: nickname(),
@@ -174,10 +191,6 @@ const sendKeyPressedToSocket = async (keyPress) => {
   };
 
   state.socket.emit("move", body);
-};
-
-const startGame = async () => {
-  state.socket.emit("startGame", { lobbyId: lobbyId() });
 };
 </script>
 
