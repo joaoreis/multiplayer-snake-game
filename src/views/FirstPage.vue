@@ -22,38 +22,15 @@
       :stop="stop"
       :addScores="addScores"
     />
-
-    <button id="play-btn" v-on:click="isPlaying ? stop() : start()">
-      {{ isPlaying ? "Stop" : "Play" }}
-    </button>
   </div>
 </template>
 
-<script>
+<script setup>
 import SnakeCanvas from "@/components/GridComponent.vue";
 
-export default {
-  name: "App",
-  components: {
-    SnakeCanvas,
-  },
-  data() {
-    return {
-      cellSize: 20,
-      boardSize: 40,
-      speed: 12,
-      isPlaying: false,
-    };
-  },
-  methods: {
-    start() {
-      this.isPlaying = true;
-    },
-    stop() {
-      this.isPlaying = false;
-    },
-  },
-};
+const cellSize = 20;
+const boardSize = 40;
+const speed = 12;
 </script>
 
 <style>

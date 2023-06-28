@@ -9,6 +9,9 @@
     <div class="scores" v-if="state.gameScores.length > 0">
       Scores: {{ state.gameScores[0] }}
     </div>
+    <button id="play-btn" v-on:click="startGame">
+      {{ isPlaying ? "Stop" : "Play" }}
+    </button>
   </div>
 </template>
 
