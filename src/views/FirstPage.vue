@@ -29,7 +29,7 @@
   </div>
 </template>
 
-<script setup>
+<script>
 import SnakeCanvas from "@/components/GridComponent.vue";
 
 export default {
