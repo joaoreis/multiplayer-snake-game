@@ -1,170 +1,183 @@
 <template>
-  <canvas
-    ref="board"
-    id="snake-canvas"
-    :width="boardSizePx"
-    :height="boardSizePx"
-  ></canvas>
+  <div>
+    <canvas
+      id="snake-canvas"
+      :width="boardSizePx()"
+      :height="boardSizePx()"
+    ></canvas>
+    {{ state.gameScores.length }}
+    <div class="scores" v-if="state.gameScores.length > 0">
+      Scores: {{ state.gameScores[0] }}
+    </div>
+    <button id="play-btn" v-on:click="startGame">
+      {{ isPlaying ? "Stop" : "Play" }}
+    </button>
+  </div>
 </template>
 
-<script>
+<script setup>
 import constants from "@/utils/constants";
+import { useUserStore } from "@/storage/user";
+import { onMounted, defineProps, reactive, onBeforeMount } from "vue";
+// import { mapState } from "pinia";
 
-export default {
-  name: "SnakeCanvas",
-  props: {
-    cellSize: Number,
-    boardSize: Number,
-    speed: Number,
-    isPlaying: Boolean,
-    stop: Function,
-    addScores: Function,
-    scores: Number,
-  },
-  computed: {
-    boardSizePx() {
-      return this.cellSize * this.boardSize;
-    },
-  },
-  mounted() {
-    this.boardContext = this.$refs.board.getContext("2d");
-    window.addEventListener("keydown", this.onKeyPress);
-  },
-  created() {
-    this.resetSnake();
-  },
-  beforeUnmount() {
-    window.removeEventListener("keydown", this.onKeyPress);
-  },
-  watch: {
-    isPlaying(value) {
-      this.clear();
-      this.board.forceStop();
-      if (value) {
-        this.resetSnake();
-        this.move();
-      }
-    },
-  },
-  methods: {
-    resetSnake() {
-      this.snake = [
-        {
-          x: this.getMiddleCell(),
-          y: this.getMiddleCell(),
-        },
-      ];
-      console.log(this.snake);
-      const randomDirectionIndex = Math.floor(Math.random() * 4);
-      this.direction = constants[randomDirectionIndex];
-      this.targetCell = null;
-    },
-    getMiddleCell() {
-      return Math.round(this.boardSize / 2);
-    },
-    move() {
-      if (!this.isPlaying) {
-        return;
-      }
+class Canvas {
+  constructor() {
+    this.canvas = document.getElementById("snake-canvas");
+    this.context = this.canvas.getContext("2d");
+  }
+}
 
-      this.clear();
-      this.setTargetCell();
+class Coordenates {
+  constructor(x = 0, y = 0) {
+    this.x = x;
+    this.y = y;
+  }
+}
 
-      const newHeadCell = {
-        x: this.snake[0].x + this.direction.move.x,
-        y: this.snake[0].y + this.direction.move.y,
-      };
+class MapGrid extends Canvas {
+  boardSize;
+  boardSizePx;
+  running;
+  cellSize;
+  speed;
+  constructor(boardSize = 0, boardSizePx = 0, cellSize, speed) {
+    super();
+    this.boardSize = new Coordenates(boardSize, boardSize);
+    this.boardSizePx = boardSizePx;
+    this.running = false;
+    this.cellSize = cellSize;
+    this.speed = speed;
+    this.startGame = this.startGame.bind(this);
+  }
+  clear() {
+    this.context.clearRect(0, 0, this.boardSizePx, this.boardSizePx);
+  }
+  middleCell() {
+    let middleX = Math.round(this.boardSize.x / 2);
+    let middleY = Math.round(this.boardSize.y / 2);
 
-      if (
-        this.isCellOutOfBoard(newHeadCell) ||
-        this.amountCellsInSnake(this.snake[0]) > 1
-      ) {
-        this.forceStop();
-        alert(`Game over! You've scored ${this.scores} points.`);
-      }
-
-      if (this.isTargetNewHead()) {
-        this.snake.unshift(this.targetCell);
-        this.targetCell = null;
-        this.addScores(this.speed);
-      } else {
-        this.snake.unshift(newHeadCell);
-        this.snake.pop();
-      }
-
-      this.boardContext.beginPath();
-      this.snake.forEach(this.drawCell);
-      this.boardContext.closePath();
-
-      setTimeout(this.move, this.getMoveDelay());
-    },
-    clear() {
-      this.boardContext.clearRect(0, 0, this.boardSizePx, this.boardSizePx);
-    },
-    drawCell({ x, y }) {
-      this.boardContext.rect(
+    return new Coordenates(middleX, middleY);
+  }
+  /**
+   * @param {Coordenates} vertebraes
+   * @param {boolean} isMainPlayer
+   */
+  drawSnake(vertebraes, isMainPlayer) {
+    let board = this.context;
+    vertebraes.forEach(({ x, y }) => {
+      board.rect(
         x * this.cellSize,
         y * this.cellSize,
         this.cellSize,
         this.cellSize
       );
-      this.boardContext.fillStyle = "black";
-      this.boardContext.fill();
-    },
-    getMoveDelay() {
-      return (2 / Number(this.speed)) * 1000;
-    },
-    isCellOutOfBoard({ x, y }) {
-      return x < 0 || y < 0 || x >= this.boardSize || y >= this.boardSize;
-    },
-    onKeyPress(event) {
-      const newDirection = constants.find((c) => c.keyCode === event.keyCode);
+      board.fillStyle = isMainPlayer ? "blue" : "black";
+      board.fill();
+    });
+  }
+  getMoveDelay() {
+    return (2 / Number(this.speed)) * 1000;
+  }
+  startGame() {
+    this.running = true;
+    // socket init
+  }
+  drawTarget(target) {
+    this.context.beginPath();
+    this.context.rect(
+      target.x * this.cellSize,
+      target.y * this.cellSize,
+      this.cellSize,
+      this.cellSize
+    );
+    this.context.fillStyle = "red";
+    this.context.fill();
+    this.context.closePath();
+  }
+  stop() {
+    this.running = false;
+    this.clear();
+  }
+}
 
-      if (!newDirection) {
-        return;
-      }
+let board = null;
 
-      if (Math.abs(newDirection.keyCode - this.direction.keyCode) !== 2) {
-        this.direction = newDirection;
-      }
-    },
-    setTargetCell() {
-      if (!this.targetCell) {
-        let targetCell = this.getRandomCell();
-        while (this.amountCellsInSnake(targetCell) > 0) {
-          targetCell = this.getRandomCell;
-        }
-        this.targetCell = targetCell;
-      }
+const props = defineProps({
+  cellSize: Number,
+  boardSize: Number,
+  speed: Number,
+  addScores: Function,
+  scores: Number,
+});
 
-      this.boardContext.beginPath();
-      this.boardContext.rect(
-        this.targetCell.x * this.cellSize,
-        this.targetCell.y * this.cellSize,
-        this.cellSize,
-        this.cellSize
-      );
-      this.boardContext.fillStyle = "red";
-      this.boardContext.fill();
-      this.boardContext.closePath();
-    },
-    getRandomCell() {
-      return {
-        x: Math.floor(Math.random() * this.boardSize),
-        y: Math.floor(Math.random() * this.boardSize),
-      };
-    },
-    amountCellsInSnake(cell) {
-      return this.snake.filter(({ x, y }) => x === cell.x && y === cell.y)
-        .length;
-    },
-    isTargetNewHead() {
-      return (
-        this.snake[0].x + this.direction.move.x === this.targetCell.x &&
-        this.snake[0].y + this.direction.move.y === this.targetCell.y
-      );
-    },
-  },
+const { lobbyId, nickname } = useUserStore();
+
+const state = reactive({
+  userToken: null,
+  socket: null,
+  showGameScore: false,
+  gameScores: [],
+});
+
+// eslint-disable-next-line no-undef
+state.socket = io("http://localhost:3000");
+
+state.socket.emit("joinLobby", { lobbyId: lobbyId(), userId: nickname() });
+
+state.socket.on("mapState", (mapState) => {
+  board.clear();
+  for (const [key, snake] of Object.entries(mapState.snakes)) {
+    const isMainPlayer = key == nickname();
+    board.drawSnake(snake.vertebraes, isMainPlayer);
+  }
+  mapState.targetCells.forEach((target) => {
+    board.drawTarget(target);
+  });
+});
+
+state.socket.on("gameFinished", () => {
+  state.gameScores = [10, 20];
+});
+
+const boardSizePx = () => {
+  return props.cellSize * props.boardSize;
+};
+
+onMounted(() => {
+  const boardPx = boardSizePx();
+
+  board = new MapGrid(props.boardSize, boardPx, props.cellSize, props.speed);
+  window.addEventListener("keydown", onKeyPress);
+});
+
+onBeforeMount(() => {
+  board = null;
+  window.removeEventListener("keydown", onKeyPress);
+});
+
+const onKeyPress = (event) => {
+  const newDirection = constants.find((c) => c.keyCode === event.keyCode);
+
+  if (!newDirection) {
+    return;
+  }
+
+  sendKeyPressedToSocket(newDirection.direction);
+};
+
+const sendKeyPressedToSocket = async (keyPress) => {
+  const body = {
+    lobbyId: lobbyId(),
+    userId: nickname(),
+    userMovement: keyPress,
+  };
+
+  state.socket.emit("move", body);
+};
+
+const startGame = async () => {
+  state.socket.emit("startGame", { lobbyId: lobbyId() });
 };
 </script>
 
@@ -173,5 +186,15 @@ export default {
   border: 1px solid #ccc;
   margin: 10px 0;
   height: 100%;
+}
+
+.scores {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 300px;
+  height: 300px;
+  background-color: blue;
 }
 </style>
