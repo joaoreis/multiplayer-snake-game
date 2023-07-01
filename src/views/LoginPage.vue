@@ -4,11 +4,28 @@
       <form class="login__form">
         <div class="login__form-group">
           <label for="nick">Digite seu Nick</label>
-          <input type="text" name="nick" v-model="userId" required />
+          <input
+            :class="{ 'login__form-group__input--wrong': userWrong }"
+            type="text"
+            name="nick"
+            v-model="userId"
+            required
+          />
+          <p v-if="userWrong" class="login__form-group__error-description">
+            Nickname inválido.
+          </p>
         </div>
         <div class="login__form-group">
           <label for="roomName">Digite o nome da Sala</label>
-          <input type="text" name="roomName" v-model="roomName" />
+          <input
+            :class="{ 'login__form-group__input--wrong': lobbyWrong }"
+            type="text"
+            name="roomName"
+            v-model="roomName"
+          />
+          <p v-if="lobbyWrong" class="login__form-group__error-description">
+            Nome da sala inválido.
+          </p>
         </div>
         <div class="login__button-group">
           <input type="button" :value="roomText" @click="criarSala()" />
@@ -28,7 +45,10 @@ const state = reactive({
   socket: null,
 });
 
-const { nickname, setUserId, setSocket } = useUserStore();
+const userWrong = ref(false);
+const lobbyWrong = ref(false);
+
+const { nickname, setUserId, setSocket, setLobbyId } = useUserStore();
 
 const userId = ref(nickname.value ?? "");
 const roomName = ref("");
@@ -51,11 +71,24 @@ const criarSala = async () => {
 
   setUserId(userId.value);
   setSocket(state.socket);
-  router.push({ name: "game" });
 };
 
 // eslint-disable-next-line no-undef
 state.socket = io("http://192.168.15.10:3000");
+
+state.socket.on("joinedLobby", function ({ lobbyId }) {
+  console.log(lobbyId);
+  setLobbyId(lobbyId);
+  router.push({ name: "game" });
+});
+
+state.socket.on("invalidLobbyId", () => (lobbyWrong.value = true));
+
+state.socket.on("invalidUser", () => (userWrong.value = true));
+
+state.socket.on("gameAlreadyStarted", () => (lobbyWrong.value = true));
+
+state.socket.on("tooManyPlayers", () => (lobbyWrong.value = true));
 </script>
 
 <style lang="scss" scoped>
@@ -90,6 +123,17 @@ state.socket = io("http://192.168.15.10:3000");
       input[type="text"] {
         height: 2rem;
         padding: 0 0.5rem;
+      }
+
+      &__input--wrong {
+        height: 2rem;
+        padding: 0 0.5rem;
+        border: 2px rgb(251, 76, 76) solid;
+      }
+
+      &__error-description {
+        font-size: 11px;
+        color: rgb(251, 76, 76);
       }
     }
 

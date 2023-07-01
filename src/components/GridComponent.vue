@@ -1,12 +1,22 @@
 <template>
-  <div>
+  <div class="canvas">
     <canvas
+      v-show="!state.gameFinished"
       id="snake-canvas"
       :width="boardSizePx()"
       :height="boardSizePx()"
     ></canvas>
-    <div class="scores">Scores: {{ userScore }}</div>
-    <button id="play-btn" v-on:click="startGame">
+
+    <div v-if="state.gameFinished" class="scores">
+      <div
+        v-for="(value, name, index) in state.gameScores"
+        :key="index"
+        class=""
+      >
+        Jogador: {{ name }} <br />Pontuação: {{ value }}
+      </div>
+    </div>
+    <button v-if="!state.gameIsRunning" id="play-btn" v-on:click="startGame">
       {{ isPlaying ? "Stop" : "Play" }}
     </button>
   </div>
@@ -16,7 +26,6 @@
 import constants from "@/utils/constants";
 import { useUserStore } from "@/storage/user";
 import { onMounted, defineProps, reactive, onBeforeMount, ref } from "vue";
-// import { mapState } from "pinia";
 
 class Canvas {
   constructor() {
@@ -62,15 +71,15 @@ class MapGrid extends Canvas {
    */
   drawSnake(vertebraes, isMainPlayer) {
     let board = this.context;
+    board.fillStyle = isMainPlayer ? "#2b45a2" : "#986a60";
+
     vertebraes.forEach(({ x, y }) => {
-      board.rect(
+      board.fillRect(
         x * this.cellSize,
         y * this.cellSize,
         this.cellSize,
         this.cellSize
       );
-      board.fillStyle = isMainPlayer ? "blue" : "black";
-      board.fill();
     });
   }
   getMoveDelay() {
@@ -115,27 +124,32 @@ const state = reactive({
   userToken: null,
   showGameScore: false,
   gameScores: [],
+  gameIsRunning: false,
+  gameFinished: false,
 });
 
 const userScore = ref(0);
 
 socket.on("mapState", (mapState) => {
+  if (!state.gameIsRunning) {
+    state.gameIsRunning = true;
+  }
   board.clear();
   for (const [key, snake] of Object.entries(mapState.snakes)) {
-    const isMainPlayer = key == nickname;
+    const isMainPlayer = key === nickname;
     board.drawSnake(snake.vertebraes, isMainPlayer);
   }
   mapState.targetCells.forEach((target) => {
     board.drawTarget(target);
   });
 
-  console.log(mapState.scores[nickname]);
-  state.gameScores = Object.values(mapState.scores);
+  state.gameScores = mapState.scores;
   userScore.value = mapState.scores[nickname];
 });
 
 socket.on("gameFinished", () => {
-  state.gameScores = [10, 20];
+  state.gameIsRunning = false;
+  state.gameFinished = true;
 });
 
 const boardSizePx = () => {
@@ -195,25 +209,55 @@ const sendKeyPressedToSocket = async (keyPress) => {
 };
 const startGame = async () => {
   socket.emit("startSoloGame", { userId: nickname });
+  state.gameIsRunning = true;
 };
 </script>
 
-<style>
+<style lang="scss">
 #snake-canvas {
+  position: relative;
   border: 1px solid #ccc;
-  margin: 10px 0;
   height: 100%;
+  background-color: rgb(248, 248, 248);
+}
+
+.canvas {
+  display: flex;
+  flex-direction: column;
+  background-color: rgb(248, 248, 248);
 }
 
 .scores {
-  position: absolute;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  justify-content: flex-start;
   align-items: center;
-  top: 0;
-  left: 0;
-  width: 300px;
-  height: 300px;
-  background-color: blue;
+  row-gap: 1rem;
+  padding-top: 3rem;
+  background-color: rgb(248, 248, 248);
+  height: 600px;
+  width: 600px;
+}
+
+#play-btn {
+  position: absolute;
+  cursor: pointer;
+  font-size: 24px;
+  font-weight: bold;
+  top: 50%;
+  left: 50%;
+  height: 4rem;
+  padding: 0 1.5rem;
+  background-color: #f7f6f6;
+  border: 2px solid #a6a6a6;
+  border-radius: 5px;
+  -moz-box-shadow: 0 0 3px #ccc;
+  -webkit-box-shadow: 0 0 3px #ccc;
+  box-shadow: 0 0 3px #ccc;
+  transform: translate(-50%, -50%);
+
+  &:hover {
+    background-color: #a6a6a6;
+  }
 }
 </style>
