@@ -50,7 +50,7 @@ const lobbyWrong = ref(false);
 
 const { nickname, setUserId, setSocket, setLobbyId } = useUserStore();
 
-const userId = ref(nickname.value ?? "");
+const userId = ref(nickname ?? "");
 const roomName = ref("");
 
 const roomText = computed(() => {
@@ -86,9 +86,15 @@ state.socket.on("invalidLobbyId", () => (lobbyWrong.value = true));
 
 state.socket.on("invalidUser", () => (userWrong.value = true));
 
-state.socket.on("gameAlreadyStarted", () => (lobbyWrong.value = true));
+state.socket.on("gameAlreadyStarted", () => {
+  lobbyWrong.value = true;
+  console.log("gameAlreadyStarted");
+});
 
-state.socket.on("tooManyPlayers", () => (lobbyWrong.value = true));
+state.socket.on("tooManyPlayers", () => {
+  lobbyWrong.value = true;
+  console.log("tooManyPlayers");
+});
 </script>
 
 <style lang="scss" scoped>

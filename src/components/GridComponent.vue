@@ -26,6 +26,7 @@
 import constants from "@/utils/constants";
 import { useUserStore } from "@/storage/user";
 import { onMounted, defineProps, reactive, onBeforeMount, ref } from "vue";
+import router from "@/router";
 
 class Canvas {
   constructor() {
@@ -125,6 +126,7 @@ const state = reactive({
   gameScores: [],
   gameIsRunning: false,
   gameFinished: false,
+  // lock: false,
 });
 
 const userScore = ref(0);
@@ -168,6 +170,7 @@ onBeforeMount(() => {
 });
 
 const onKeyPress = (event) => {
+  // if (state.lock) return;
   const newDirection = constants.find((c) => c.keyCode === event.keyCode);
 
   if (!newDirection) {
@@ -178,15 +181,25 @@ const onKeyPress = (event) => {
 };
 
 const sendKeyPressedToSocket = async (keyPress) => {
+  // state.lock = true;
   const body = {
     userId: nickname,
     userMovement: keyPress,
   };
 
   socket.emit("move", body);
+  // setTimeout(() => {
+  //   state.lock = false;
+  // }, 85);
 };
 
 const startGame = async () => {
+  if (state.gameFinished) {
+    router.push({ name: "login" });
+
+    return;
+  }
+
   socket.emit("startSoloGame", { userId: nickname });
   state.gameIsRunning = true;
 };
