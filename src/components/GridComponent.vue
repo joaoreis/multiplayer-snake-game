@@ -25,7 +25,7 @@ class Canvas {
   }
 }
 
-class Coordenates {
+class Coordinates {
   constructor(x = 0, y = 0) {
     this.x = x;
     this.y = y;
@@ -40,7 +40,7 @@ class MapGrid extends Canvas {
   speed;
   constructor(boardSize = 0, boardSizePx = 0, cellSize, speed) {
     super();
-    this.boardSize = new Coordenates(boardSize, boardSize);
+    this.boardSize = new Coordinates(boardSize, boardSize);
     this.boardSizePx = boardSizePx;
     this.running = false;
     this.cellSize = cellSize;
@@ -54,10 +54,10 @@ class MapGrid extends Canvas {
     let middleX = Math.round(this.boardSize.x / 2);
     let middleY = Math.round(this.boardSize.y / 2);
 
-    return new Coordenates(middleX, middleY);
+    return new Coordinates(middleX, middleY);
   }
   /**
-   * @param {Coordenates} vertebraes
+   * @param {Coordinates} vertebraes
    * @param {boolean} isMainPlayer
    */
   drawSnake(vertebraes, isMainPlayer) {
@@ -104,6 +104,7 @@ const props = defineProps({
   cellSize: Number,
   boardSize: Number,
   speed: Number,
+  isPlaying: Boolean,
   addScores: Function,
   scores: Number,
 });
@@ -153,6 +154,15 @@ onBeforeMount(() => {
   window.removeEventListener("keydown", onKeyPress);
 });
 
+watch({
+  isPlaying(value) {
+    board.stop();
+    if (value) {
+      board.startGame();
+    }
+  },
+});
+
 const onKeyPress = (event) => {
   const newDirection = constants.find((c) => c.keyCode === event.keyCode);
 
@@ -163,7 +173,19 @@ const onKeyPress = (event) => {
   sendKeyPressedToSocket(newDirection.direction);
 };
 
+const startGame = async () => {
+  try {
+    await fetch(`http://localhost:3000/${lobbyId()}/start`);
+  } catch (error) {
+    console.log(error);
+  } finally {
+    board.startGame();
+  }
+};
+
 const sendKeyPressedToSocket = async (keyPress) => {
+  if (!board.running) await startGame();
+
   const body = {
     userId: nickname,
     userMovement: keyPress,
@@ -171,7 +193,6 @@ const sendKeyPressedToSocket = async (keyPress) => {
 
   socket.emit("move", body);
 };
-
 const startGame = async () => {
   socket.emit("startSoloGame", { userId: nickname });
 };
