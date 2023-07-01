@@ -4,7 +4,7 @@
       <form class="login__form">
         <div class="login__form-group">
           <label for="nick">Digite seu Nick</label>
-          <input type="text" name="nick" v-model="nickname" required />
+          <input type="text" name="nick" v-model="userId" required />
         </div>
         <div class="login__form-group">
           <label for="roomName">Digite o nome da Sala</label>
@@ -21,14 +21,16 @@
 <script setup>
 import { ref } from "vue";
 import { useUserStore } from "@/storage/user";
-import { computed } from "vue";
+import { computed, reactive } from "vue";
 import router from "@/router";
 
-const storage = useUserStore();
+const state = reactive({
+  socket: null,
+});
 
-const { getLobbyName, lobbyId } = storage;
+const { nickname, setUserId, setSocket } = useUserStore();
 
-const nickname = ref("");
+const userId = ref(nickname.value ?? "");
 const roomName = ref("");
 
 const roomText = computed(() => {
@@ -36,17 +38,24 @@ const roomText = computed(() => {
 });
 
 const criarSala = async () => {
-  try {
-    await getLobbyName(nickname.value, roomName.value);
-  } catch (error) {
-    alert(error.message);
-  } finally {
-    console.log(lobbyId());
-    if (lobbyId()) {
-      router.push({ name: "game" });
-    }
+  if (roomName.value) {
+    state.socket.emit("joinLobby", {
+      lobbyId: roomName.value,
+      userId: userId.value,
+    });
+  } else {
+    state.socket.emit("newLobby", {
+      userId: userId.value,
+    });
   }
+
+  setUserId(userId.value);
+  setSocket(state.socket);
+  router.push({ name: "game" });
 };
+
+// eslint-disable-next-line no-undef
+state.socket = io("http://192.168.15.10:3000");
 </script>
 
 <style lang="scss" scoped>

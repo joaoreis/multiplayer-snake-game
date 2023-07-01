@@ -111,24 +111,18 @@ const props = defineProps({
   scores: Number,
 });
 
-const { lobbyId, nickname } = useUserStore();
+const { nickname, socket } = useUserStore();
 
 const state = reactive({
   userToken: null,
-  socket: null,
   showGameScore: false,
   gameScores: [],
 });
 
-// eslint-disable-next-line no-undef
-state.socket = io("http://localhost:3000");
-
-state.socket.emit("joinLobby", { lobbyId: lobbyId(), userId: nickname() });
-
-state.socket.on("mapState", (mapState) => {
+socket.on("mapState", (mapState) => {
   board.clear();
   for (const [key, snake] of Object.entries(mapState.snakes)) {
-    const isMainPlayer = key == nickname();
+    const isMainPlayer = key == nickname;
     board.drawSnake(snake.vertebraes, isMainPlayer);
   }
   mapState.targetCells.forEach((target) => {
@@ -136,7 +130,7 @@ state.socket.on("mapState", (mapState) => {
   });
 });
 
-state.socket.on("gameFinished", () => {
+socket.on("gameFinished", () => {
   state.gameScores = [10, 20];
 });
 
@@ -168,16 +162,15 @@ const onKeyPress = (event) => {
 
 const sendKeyPressedToSocket = async (keyPress) => {
   const body = {
-    lobbyId: lobbyId(),
-    userId: nickname(),
+    userId: nickname,
     userMovement: keyPress,
   };
 
-  state.socket.emit("move", body);
+  socket.emit("move", body);
 };
 
 const startGame = async () => {
-  state.socket.emit("startGame", { lobbyId: lobbyId() });
+  socket.emit("startSoloGame", { userId: nickname });
 };
 </script>
 
