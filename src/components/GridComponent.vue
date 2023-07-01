@@ -1,12 +1,12 @@
 <template>
-  <div>
+  <div class="canvas">
     <canvas
       id="snake-canvas"
       :width="boardSizePx()"
       :height="boardSizePx()"
     ></canvas>
-    <div class="scores">Scores: {{ userScore }}</div>
-    <button id="play-btn" v-on:click="startGame">
+    <div v-if="state.gameFinished" class="scores">Scores: {{ userScore }}</div>
+    <button v-if="!state.gameIsRunning" id="play-btn" v-on:click="startGame">
       {{ isPlaying ? "Stop" : "Play" }}
     </button>
   </div>
@@ -114,6 +114,8 @@ const state = reactive({
   userToken: null,
   showGameScore: false,
   gameScores: [],
+  gameIsRunning: false,
+  gameFinished: false,
 });
 
 const userScore = ref(0);
@@ -128,13 +130,14 @@ socket.on("mapState", (mapState) => {
     board.drawTarget(target);
   });
 
-  console.log(mapState.scores[nickname]);
   state.gameScores = Object.values(mapState.scores);
   userScore.value = mapState.scores[nickname];
 });
 
 socket.on("gameFinished", () => {
   state.gameScores = [10, 20];
+  state.gameIsRunning = false;
+  state.gameFinished = true;
 });
 
 const boardSizePx = () => {
@@ -174,14 +177,22 @@ const sendKeyPressedToSocket = async (keyPress) => {
 
 const startGame = async () => {
   socket.emit("startSoloGame", { userId: nickname });
+  state.gameIsRunning = true;
 };
 </script>
 
-<style>
+<style lang="scss">
 #snake-canvas {
+  position: relative;
   border: 1px solid #ccc;
-  margin: 10px 0;
   height: 100%;
+  background-color: rgb(248, 248, 248);
+}
+
+.canvas {
+  display: flex;
+  flex-direction: column;
+  background-color: rgb(248, 248, 248);
 }
 
 .scores {
@@ -194,5 +205,27 @@ const startGame = async () => {
   width: 300px;
   height: 300px;
   background-color: blue;
+}
+
+#play-btn {
+  position: absolute;
+  cursor: pointer;
+  font-size: 24px;
+  font-weight: bold;
+  top: 50%;
+  left: 50%;
+  height: 4rem;
+  padding: 0 1.5rem;
+  background-color: #f7f6f6;
+  border: 2px solid #a6a6a6;
+  border-radius: 5px;
+  -moz-box-shadow: 0 0 3px #ccc;
+  -webkit-box-shadow: 0 0 3px #ccc;
+  box-shadow: 0 0 3px #ccc;
+  transform: translate(-50%, -50%);
+
+  &:hover {
+    background-color: #a6a6a6;
+  }
 }
 </style>

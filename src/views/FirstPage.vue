@@ -37,7 +37,6 @@ const speed = 12;
 .gameState {
   font-family: "Courier New", Courier, monospace;
   font-size: 24px;
-
   &__header {
     display: flex;
     justify-content: space-between;
