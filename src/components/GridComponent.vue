@@ -5,10 +5,7 @@
       :width="boardSizePx()"
       :height="boardSizePx()"
     ></canvas>
-    {{ state.gameScores.length }}
-    <div class="scores" v-if="state.gameScores.length > 0">
-      Scores: {{ state.gameScores[0] }}
-    </div>
+    <div class="scores">Scores: {{ userScore }}</div>
     <button id="play-btn" v-on:click="startGame">
       {{ isPlaying ? "Stop" : "Play" }}
     </button>
@@ -18,7 +15,7 @@
 <script setup>
 import constants from "@/utils/constants";
 import { useUserStore } from "@/storage/user";
-import { onMounted, defineProps, reactive, onBeforeMount, watch } from "vue";
+import { onMounted, defineProps, reactive, onBeforeMount, ref } from "vue";
 // import { mapState } from "pinia";
 
 class Canvas {
@@ -112,30 +109,32 @@ const props = defineProps({
   scores: Number,
 });
 
-const { lobbyId, nickname } = useUserStore();
+const { nickname, socket } = useUserStore();
 
 const state = reactive({
   userToken: null,
-  socket: null,
   showGameScore: false,
   gameScores: [],
 });
 
-// eslint-disable-next-line no-undef
-state.socket = io("http://localhost:3000");
+const userScore = ref(0);
 
-state.socket.on("mapState", (mapState) => {
+socket.on("mapState", (mapState) => {
   board.clear();
   for (const [key, snake] of Object.entries(mapState.snakes)) {
-    const isMainPlayer = key == nickname();
+    const isMainPlayer = key == nickname;
     board.drawSnake(snake.vertebraes, isMainPlayer);
   }
   mapState.targetCells.forEach((target) => {
     board.drawTarget(target);
   });
+
+  console.log(mapState.scores[nickname]);
+  state.gameScores = Object.values(mapState.scores);
+  userScore.value = mapState.scores[nickname];
 });
 
-state.socket.on("gameFinished", () => {
+socket.on("gameFinished", () => {
   state.gameScores = [10, 20];
 });
 
@@ -188,12 +187,14 @@ const sendKeyPressedToSocket = async (keyPress) => {
   if (!board.running) await startGame();
 
   const body = {
-    lobbyId: lobbyId(),
-    userId: nickname(),
+    userId: nickname,
     userMovement: keyPress,
   };
 
-  state.socket.emit("move", body);
+  socket.emit("move", body);
+};
+const startGame = async () => {
+  socket.emit("startSoloGame", { userId: nickname });
 };
 </script>
 
@@ -209,6 +210,8 @@ const sendKeyPressedToSocket = async (keyPress) => {
   display: flex;
   justify-content: center;
   align-items: center;
+  top: 0;
+  left: 0;
   width: 300px;
   height: 300px;
   background-color: blue;

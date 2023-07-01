@@ -29,11 +29,11 @@ const router = createRouter({
 router.beforeEach((to) => {
   const redirectQuery = {};
 
-  const { lobbyId } = useUserStore();
+  const { nickname } = useUserStore();
 
   redirectQuery.redirect = to.fullPath;
   // Checking if the route requires auth
-  if (to.matched.some((record) => record.meta.requiresAuth) && !lobbyId()) {
+  if (to.matched.some((record) => record.meta.requiresAuth) && !nickname) {
     router.push({ name: "login" });
   }
   window.scrollTo(0, 0);
