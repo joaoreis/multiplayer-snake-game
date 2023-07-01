@@ -18,7 +18,7 @@
 <script setup>
 import constants from "@/utils/constants";
 import { useUserStore } from "@/storage/user";
-import { onMounted, defineProps, reactive, onBeforeMount } from "vue";
+import { onMounted, defineProps, reactive, onBeforeMount, watch } from "vue";
 // import { mapState } from "pinia";
 
 class Canvas {
@@ -28,7 +28,7 @@ class Canvas {
   }
 }
 
-class Coordenates {
+class Coordinates {
   constructor(x = 0, y = 0) {
     this.x = x;
     this.y = y;
@@ -43,7 +43,7 @@ class MapGrid extends Canvas {
   speed;
   constructor(boardSize = 0, boardSizePx = 0, cellSize, speed) {
     super();
-    this.boardSize = new Coordenates(boardSize, boardSize);
+    this.boardSize = new Coordinates(boardSize, boardSize);
     this.boardSizePx = boardSizePx;
     this.running = false;
     this.cellSize = cellSize;
@@ -57,10 +57,10 @@ class MapGrid extends Canvas {
     let middleX = Math.round(this.boardSize.x / 2);
     let middleY = Math.round(this.boardSize.y / 2);
 
-    return new Coordenates(middleX, middleY);
+    return new Coordinates(middleX, middleY);
   }
   /**
-   * @param {Coordenates} vertebraes
+   * @param {Coordinates} vertebraes
    * @param {boolean} isMainPlayer
    */
   drawSnake(vertebraes, isMainPlayer) {
@@ -107,6 +107,7 @@ const props = defineProps({
   cellSize: Number,
   boardSize: Number,
   speed: Number,
+  isPlaying: Boolean,
   addScores: Function,
   scores: Number,
 });
@@ -122,8 +123,6 @@ const state = reactive({
 
 // eslint-disable-next-line no-undef
 state.socket = io("http://localhost:3000");
-
-state.socket.emit("joinLobby", { lobbyId: lobbyId(), userId: nickname() });
 
 state.socket.on("mapState", (mapState) => {
   board.clear();
@@ -156,6 +155,15 @@ onBeforeMount(() => {
   window.removeEventListener("keydown", onKeyPress);
 });
 
+watch({
+  isPlaying(value) {
+    board.stop();
+    if (value) {
+      board.startGame();
+    }
+  },
+});
+
 const onKeyPress = (event) => {
   const newDirection = constants.find((c) => c.keyCode === event.keyCode);
 
@@ -166,7 +174,19 @@ const onKeyPress = (event) => {
   sendKeyPressedToSocket(newDirection.direction);
 };
 
+const startGame = async () => {
+  try {
+    await fetch(`http://localhost:3000/${lobbyId()}/start`);
+  } catch (error) {
+    console.log(error);
+  } finally {
+    board.startGame();
+  }
+};
+
 const sendKeyPressedToSocket = async (keyPress) => {
+  if (!board.running) await startGame();
+
   const body = {
     lobbyId: lobbyId(),
     userId: nickname(),
@@ -174,10 +194,6 @@ const sendKeyPressedToSocket = async (keyPress) => {
   };
 
   state.socket.emit("move", body);
-};
-
-const startGame = async () => {
-  state.socket.emit("startGame", { lobbyId: lobbyId() });
 };
 </script>
 

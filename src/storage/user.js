@@ -34,6 +34,7 @@ export const useUserStore = defineStore("userData", () => {
       console.log(error);
       throw new Error(alertMessage);
     }
+    console.log(lobbyId);
   };
 
   return {
