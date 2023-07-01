@@ -1,19 +1,12 @@
 <template>
-  <div id="app">
-    <h1>Snake Game</h1>
+  <section class="gameState">
+    <div class="gameState__header">
+      <h1 class="gameState__title">Snake Game</h1>
 
-    <!-- <div class="column">
-      Cell size (px):
-      <input type="number" min="10" v-model.number="cellSize" />
+      <h2 class="gameState__lobbyId">
+        {{ lobbyId }}
+      </h2>
     </div>
-    <div class="column">
-      Board size (cells):
-      <input type="number" min="5" v-model.number="boardSize" />
-    </div>
-    <div class="column">
-      Speed:
-      <input type="number" min="1" v-model.number="speed" />
-    </div> -->
 
     <SnakeCanvas
       :cellSize="cellSize"
@@ -22,52 +15,32 @@
       :stop="stop"
       :addScores="addScores"
     />
-  </div>
+  </section>
 </template>
 
 <script setup>
 import SnakeCanvas from "@/components/GridComponent.vue";
+
+import { useUserStore } from "@/storage/user";
+
+const { lobbyId } = useUserStore();
 
 const cellSize = 20;
 const boardSize = 40;
 const speed = 12;
 </script>
 
-<style>
+<style lang="scss" scoped>
 * {
   box-sizing: border-box;
 }
+.gameState {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 24px;
 
-body {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  overflow: hidden;
-  position: relative;
-}
-.column {
-  display: inline-block;
-  width: calc(30% - 5px);
-  background-color: #f4f4f4;
-  border-radius: 4px;
-  padding: 10px 5px;
-  margin: 5px;
-}
-
-.column input {
-  width: 80px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  line-height: 20px;
-}
-
-#play-btn {
-  padding: 10px 20px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 20px;
-  margin-top: 10px;
-  cursor: pointer;
+  &__header {
+    display: flex;
+    justify-content: space-between;
+  }
 }
 </style>
