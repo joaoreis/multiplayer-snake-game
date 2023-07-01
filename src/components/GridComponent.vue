@@ -5,10 +5,7 @@
       :width="boardSizePx()"
       :height="boardSizePx()"
     ></canvas>
-    {{ state.gameScores.length }}
-    <div class="scores" v-if="state.gameScores.length > 0">
-      Scores: {{ state.gameScores[0] }}
-    </div>
+    <div class="scores">Scores: {{ userScore }}</div>
     <button id="play-btn" v-on:click="startGame">
       {{ isPlaying ? "Stop" : "Play" }}
     </button>
@@ -18,7 +15,7 @@
 <script setup>
 import constants from "@/utils/constants";
 import { useUserStore } from "@/storage/user";
-import { onMounted, defineProps, reactive, onBeforeMount } from "vue";
+import { onMounted, defineProps, reactive, onBeforeMount, ref } from "vue";
 // import { mapState } from "pinia";
 
 class Canvas {
@@ -119,6 +116,8 @@ const state = reactive({
   gameScores: [],
 });
 
+const userScore = ref(0);
+
 socket.on("mapState", (mapState) => {
   board.clear();
   for (const [key, snake] of Object.entries(mapState.snakes)) {
@@ -128,6 +127,10 @@ socket.on("mapState", (mapState) => {
   mapState.targetCells.forEach((target) => {
     board.drawTarget(target);
   });
+
+  console.log(mapState.scores[nickname]);
+  state.gameScores = Object.values(mapState.scores);
+  userScore.value = mapState.scores[nickname];
 });
 
 socket.on("gameFinished", () => {
@@ -186,6 +189,8 @@ const startGame = async () => {
   display: flex;
   justify-content: center;
   align-items: center;
+  top: 0;
+  left: 0;
   width: 300px;
   height: 300px;
   background-color: blue;
