@@ -4,11 +4,28 @@
       <form class="login__form">
         <div class="login__form-group">
           <label for="nick">Digite seu Nick</label>
-          <input type="text" name="nick" v-model="nickname" required />
+          <input
+            :class="{ 'login__form-group__input--wrong': userWrong }"
+            type="text"
+            name="nick"
+            v-model="userId"
+            required
+          />
+          <p v-if="userWrong" class="login__form-group__error-description">
+            Nickname inválido.
+          </p>
         </div>
         <div class="login__form-group">
           <label for="roomName">Digite o nome da Sala</label>
-          <input type="text" name="roomName" v-model="roomName" />
+          <input
+            :class="{ 'login__form-group__input--wrong': lobbyWrong }"
+            type="text"
+            name="roomName"
+            v-model="roomName"
+          />
+          <p v-if="lobbyWrong" class="login__form-group__error-description">
+            Nome da sala inválido.
+          </p>
         </div>
         <div class="login__button-group">
           <input type="button" :value="roomText" @click="criarSala()" />
@@ -21,14 +38,19 @@
 <script setup>
 import { ref } from "vue";
 import { useUserStore } from "@/storage/user";
-import { computed } from "vue";
+import { computed, reactive } from "vue";
 import router from "@/router";
 
-const storage = useUserStore();
+const state = reactive({
+  socket: null,
+});
 
-const { getLobbyName, lobbyId } = storage;
+const userWrong = ref(false);
+const lobbyWrong = ref(false);
 
-const nickname = ref("");
+const { nickname, setUserId, setSocket, setLobbyId } = useUserStore();
+
+const userId = ref(nickname ?? "");
 const roomName = ref("");
 
 const roomText = computed(() => {
@@ -36,17 +58,43 @@ const roomText = computed(() => {
 });
 
 const criarSala = async () => {
-  try {
-    await getLobbyName(nickname.value, roomName.value);
-  } catch (error) {
-    alert(error.message);
-  } finally {
-    console.log(lobbyId());
-    if (lobbyId()) {
-      router.push({ name: "game" });
-    }
+  if (roomName.value) {
+    state.socket.emit("joinLobby", {
+      lobbyId: roomName.value,
+      userId: userId.value,
+    });
+  } else {
+    state.socket.emit("newLobby", {
+      userId: userId.value,
+    });
   }
+
+  setUserId(userId.value);
+  setSocket(state.socket);
 };
+
+// eslint-disable-next-line no-undef
+state.socket = io("http://192.168.15.10:3000");
+
+state.socket.on("joinedLobby", function ({ lobbyId }) {
+  console.log(lobbyId);
+  setLobbyId(lobbyId);
+  router.push({ name: "game" });
+});
+
+state.socket.on("invalidLobbyId", () => (lobbyWrong.value = true));
+
+state.socket.on("invalidUser", () => (userWrong.value = true));
+
+state.socket.on("gameAlreadyStarted", () => {
+  lobbyWrong.value = true;
+  console.log("gameAlreadyStarted");
+});
+
+state.socket.on("tooManyPlayers", () => {
+  lobbyWrong.value = true;
+  console.log("tooManyPlayers");
+});
 </script>
 
 <style lang="scss" scoped>
@@ -81,6 +129,17 @@ const criarSala = async () => {
       input[type="text"] {
         height: 2rem;
         padding: 0 0.5rem;
+      }
+
+      &__input--wrong {
+        height: 2rem;
+        padding: 0 0.5rem;
+        border: 2px rgb(251, 76, 76) solid;
+      }
+
+      &__error-description {
+        font-size: 11px;
+        color: rgb(251, 76, 76);
       }
     }
 

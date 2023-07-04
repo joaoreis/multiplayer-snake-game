@@ -1,15 +1,22 @@
 <template>
-  <div>
+  <div class="canvas">
     <canvas
+      v-show="!state.gameFinished"
       id="snake-canvas"
       :width="boardSizePx()"
       :height="boardSizePx()"
     ></canvas>
-    {{ state.gameScores.length }}
-    <div class="scores" v-if="state.gameScores.length > 0">
-      Scores: {{ state.gameScores[0] }}
+
+    <div v-if="state.gameFinished" class="scores">
+      <div
+        v-for="(value, name, index) in state.gameScores"
+        :key="index"
+        class=""
+      >
+        Jogador: {{ name }} <br />Pontuação: {{ value }}
+      </div>
     </div>
-    <button id="play-btn" v-on:click="startGame">
+    <button v-if="!state.gameIsRunning" id="play-btn" v-on:click="startGame">
       {{ isPlaying ? "Stop" : "Play" }}
     </button>
   </div>
@@ -18,8 +25,8 @@
 <script setup>
 import constants from "@/utils/constants";
 import { useUserStore } from "@/storage/user";
-import { onMounted, defineProps, reactive, onBeforeMount, watch } from "vue";
-// import { mapState } from "pinia";
+import { onMounted, defineProps, reactive, onBeforeMount, ref } from "vue";
+import router from "@/router";
 
 class Canvas {
   constructor() {
@@ -65,15 +72,15 @@ class MapGrid extends Canvas {
    */
   drawSnake(vertebraes, isMainPlayer) {
     let board = this.context;
+    board.fillStyle = isMainPlayer ? "#2b45a2" : "#986a60";
+
     vertebraes.forEach(({ x, y }) => {
-      board.rect(
+      board.fillRect(
         x * this.cellSize,
         y * this.cellSize,
         this.cellSize,
         this.cellSize
       );
-      board.fillStyle = isMainPlayer ? "blue" : "black";
-      board.fill();
     });
   }
   getMoveDelay() {
@@ -112,31 +119,39 @@ const props = defineProps({
   scores: Number,
 });
 
-const { lobbyId, nickname } = useUserStore();
+const { nickname, socket } = useUserStore();
 
 const state = reactive({
   userToken: null,
-  socket: null,
   showGameScore: false,
   gameScores: [],
+  gameIsRunning: false,
+  gameFinished: false,
+  // lock: false,
 });
 
-// eslint-disable-next-line no-undef
-state.socket = io("http://localhost:3000");
+const userScore = ref(0);
 
-state.socket.on("mapState", (mapState) => {
+socket.on("mapState", (mapState) => {
+  if (!state.gameIsRunning) {
+    state.gameIsRunning = true;
+  }
   board.clear();
   for (const [key, snake] of Object.entries(mapState.snakes)) {
-    const isMainPlayer = key == nickname();
+    const isMainPlayer = key === nickname;
     board.drawSnake(snake.vertebraes, isMainPlayer);
   }
   mapState.targetCells.forEach((target) => {
     board.drawTarget(target);
   });
+
+  state.gameScores = mapState.scores;
+  userScore.value = mapState.scores[nickname];
 });
 
-state.socket.on("gameFinished", () => {
-  state.gameScores = [10, 20];
+socket.on("gameFinished", () => {
+  state.gameIsRunning = false;
+  state.gameFinished = true;
 });
 
 const boardSizePx = () => {
@@ -165,6 +180,7 @@ watch({
 });
 
 const onKeyPress = (event) => {
+  // if (state.lock) return;
   const newDirection = constants.find((c) => c.keyCode === event.keyCode);
 
   if (!newDirection) {
@@ -185,32 +201,75 @@ const startGame = async () => {
 };
 
 const sendKeyPressedToSocket = async (keyPress) => {
-  if (!board.running) await startGame();
-
+  // state.lock = true;
   const body = {
-    lobbyId: lobbyId(),
-    userId: nickname(),
+    userId: nickname,
     userMovement: keyPress,
   };
 
-  state.socket.emit("move", body);
+  socket.emit("move", body);
+  // setTimeout(() => {
+  //   state.lock = false;
+  // }, 85);
+};
+
+const startGame = async () => {
+  if (state.gameFinished) {
+    router.push({ name: "login" });
+
+    return;
+  }
+
+  socket.emit("startSoloGame", { userId: nickname });
+  state.gameIsRunning = true;
 };
 </script>
 
-<style>
+<style lang="scss">
 #snake-canvas {
+  position: relative;
   border: 1px solid #ccc;
-  margin: 10px 0;
   height: 100%;
+  background-color: rgb(248, 248, 248);
+}
+
+.canvas {
+  display: flex;
+  flex-direction: column;
+  background-color: rgb(248, 248, 248);
 }
 
 .scores {
-  position: absolute;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  justify-content: flex-start;
   align-items: center;
-  width: 300px;
-  height: 300px;
-  background-color: blue;
+  row-gap: 1rem;
+  padding-top: 3rem;
+  background-color: rgb(248, 248, 248);
+  height: 600px;
+  width: 600px;
+}
+
+#play-btn {
+  position: absolute;
+  cursor: pointer;
+  font-size: 24px;
+  font-weight: bold;
+  top: 50%;
+  left: 50%;
+  height: 4rem;
+  padding: 0 1.5rem;
+  background-color: #f7f6f6;
+  border: 2px solid #a6a6a6;
+  border-radius: 5px;
+  -moz-box-shadow: 0 0 3px #ccc;
+  -webkit-box-shadow: 0 0 3px #ccc;
+  box-shadow: 0 0 3px #ccc;
+  transform: translate(-50%, -50%);
+
+  &:hover {
+    background-color: #a6a6a6;
+  }
 }
 </style>
