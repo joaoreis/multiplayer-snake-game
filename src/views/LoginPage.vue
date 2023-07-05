@@ -74,7 +74,7 @@ const criarSala = async () => {
 };
 
 // eslint-disable-next-line no-undef
-state.socket = io("http://localhost:3000");
+state.socket = io("https://fangandfriends-backend.onrender.com");
 
 state.socket.on("joinedLobby", function ({ lobbyId }) {
   console.log(lobbyId);
