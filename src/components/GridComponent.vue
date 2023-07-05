@@ -82,10 +82,15 @@ class MapGrid extends Canvas {
         this.cellSize
       );
     });
+    board.fillStyle = "#00FF00";
+    board.fillRect(
+      vertebraes[vertebraes.length - 1].x * this.cellSize,
+      vertebraes[vertebraes.length - 1].y * this.cellSize,
+      this.cellSize,
+      this.cellSize
+    );
   }
-  getMoveDelay() {
-    return (2 / Number(this.speed)) * 1000;
-  }
+
   startGame() {
     this.running = true;
     // socket init
