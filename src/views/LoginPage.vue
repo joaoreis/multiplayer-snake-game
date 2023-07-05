@@ -77,7 +77,6 @@ const criarSala = async () => {
 state.socket = io("https://fangandfriends-backend.onrender.com");
 
 state.socket.on("joinedLobby", function ({ lobbyId }) {
-  console.log(lobbyId);
   setLobbyId(lobbyId);
   router.push({ name: "game" });
 });
@@ -88,12 +87,10 @@ state.socket.on("invalidUser", () => (userWrong.value = true));
 
 state.socket.on("gameAlreadyStarted", () => {
   lobbyWrong.value = true;
-  console.log("gameAlreadyStarted");
 });
 
 state.socket.on("tooManyPlayers", () => {
   lobbyWrong.value = true;
-  console.log("tooManyPlayers");
 });
 </script>
 
