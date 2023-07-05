@@ -1,5 +1,4 @@
 import { createRouter, createWebHashHistory } from "vue-router";
-// import HomeView from "../views/HomeView.vue";
 import FirstPageVue from "@/views/FirstPage.vue";
 import LoginPageVue from "@/views/LoginPage.vue";
 
@@ -9,16 +8,19 @@ const routes = [
   {
     path: "/",
     name: "login",
-    component: () => LoginPageVue,
+    displayName: "login",
+    component: () => Promise.resolve(LoginPageVue),
   },
   {
     path: "/game",
     name: "game",
-    component: () => FirstPageVue,
+    displayName: "login",
+    component: () => Promise.resolve(FirstPageVue),
     meta: {
       requiresAuth: true,
     },
   },
+  { path: "/:pathMatch(.*)*", redirect: "/" },
 ];
 
 const router = createRouter({

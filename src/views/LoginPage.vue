@@ -74,10 +74,9 @@ const criarSala = async () => {
 };
 
 // eslint-disable-next-line no-undef
-state.socket = io("http://localhost:3000");
+state.socket = io("https://fangandfriends-backend.onrender.com");
 
 state.socket.on("joinedLobby", function ({ lobbyId }) {
-  console.log(lobbyId);
   setLobbyId(lobbyId);
   router.push({ name: "game" });
 });
@@ -88,12 +87,10 @@ state.socket.on("invalidUser", () => (userWrong.value = true));
 
 state.socket.on("gameAlreadyStarted", () => {
   lobbyWrong.value = true;
-  console.log("gameAlreadyStarted");
 });
 
 state.socket.on("tooManyPlayers", () => {
   lobbyWrong.value = true;
-  console.log("tooManyPlayers");
 });
 </script>
 
@@ -107,8 +104,10 @@ state.socket.on("tooManyPlayers", () => {
   align-items: center;
   background-color: rgb(230, 230, 230);
 }
+
 .login {
   font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
+
   &__card {
     background-color: white;
     padding: 8% 8%;
