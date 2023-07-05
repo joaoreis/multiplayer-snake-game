@@ -8,16 +8,19 @@ const routes = [
   {
     path: "/",
     name: "login",
-    component: () => LoginPageVue,
+    displayName: "login",
+    component: () => Promise.resolve(LoginPageVue),
   },
   {
     path: "/game",
     name: "game",
-    component: () => FirstPageVue,
+    displayName: "login",
+    component: () => Promise.resolve(FirstPageVue),
     meta: {
       requiresAuth: true,
     },
   },
+  { path: "/:pathMatch(.*)*", redirect: "/" },
 ];
 
 const router = createRouter({
