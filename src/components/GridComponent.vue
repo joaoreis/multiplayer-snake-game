@@ -170,15 +170,6 @@ onBeforeMount(() => {
   window.removeEventListener("keydown", onKeyPress);
 });
 
-watch({
-  isPlaying(value) {
-    board.stop();
-    if (value) {
-      board.startGame();
-    }
-  },
-});
-
 const onKeyPress = (event) => {
   // if (state.lock) return;
   const newDirection = constants.find((c) => c.keyCode === event.keyCode);
@@ -190,27 +181,13 @@ const onKeyPress = (event) => {
   sendKeyPressedToSocket(newDirection.direction);
 };
 
-const startGame = async () => {
-  try {
-    await fetch(`http://localhost:3000/${lobbyId()}/start`);
-  } catch (error) {
-    console.log(error);
-  } finally {
-    board.startGame();
-  }
-};
-
 const sendKeyPressedToSocket = async (keyPress) => {
-  // state.lock = true;
   const body = {
     userId: nickname,
     userMovement: keyPress,
   };
 
   socket.emit("move", body);
-  // setTimeout(() => {
-  //   state.lock = false;
-  // }, 85);
 };
 
 const startGame = async () => {

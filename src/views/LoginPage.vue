@@ -74,7 +74,7 @@ const criarSala = async () => {
 };
 
 // eslint-disable-next-line no-undef
-state.socket = io("http://192.168.15.10:3000");
+state.socket = io("http://localhost:3000");
 
 state.socket.on("joinedLobby", function ({ lobbyId }) {
   console.log(lobbyId);
