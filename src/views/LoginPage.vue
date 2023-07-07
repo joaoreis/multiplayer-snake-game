@@ -75,8 +75,8 @@ const criarSala = async () => {
 
 // Production
 // eslint-disable-next-line no-undef
-// state.socket = io("http://fangandfriends.sa-east-1.elasticbeanstalk.com/");
-// state.socket = io("https://pr-12.d2l3n6y3w7fxtb.amplifyapp.com/");
+state.socket = io("https://fangandfriends-west.onrender.com");
+// state.socket = io("https://fangandfriends-backend.onrender.com");
 
 // Local development
 // eslint-disable-next-line no-undef
@@ -86,6 +86,7 @@ state.socket.on("joinedLobby", function ({ lobbyId }) {
   setLobbyId(lobbyId);
   router.push({ name: "game" });
 });
+// state.socket = io("https://fangandfriends-backend-pr-7.onrender.com/");
 
 state.socket.on("invalidLobbyId", () => (lobbyWrong.value = true));
 
