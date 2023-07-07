@@ -110,7 +110,6 @@ state.socket.on("tooManyPlayers", () => {
   align-items: center;
   background-color: rgb(230, 230, 230);
 }
-
 .login {
   font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
 

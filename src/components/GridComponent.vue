@@ -157,6 +157,7 @@ socket.on("mapState", (mapState) => {
 socket.on("gameFinished", () => {
   state.gameIsRunning = false;
   state.gameFinished = true;
+  socket.close();
 });
 
 const boardSizePx = () => {
@@ -190,6 +191,7 @@ const sendKeyPressedToSocket = async (keyPress) => {
   const body = {
     userId: nickname,
     userMovement: keyPress,
+    timeStamp: Date.now(),
   };
 
   socket.emit("move", body);
@@ -197,7 +199,7 @@ const sendKeyPressedToSocket = async (keyPress) => {
 
 const startGame = async () => {
   if (state.gameFinished) {
-    router.push({ name: "login" });
+    await router.push({ name: "login" });
 
     return;
   }
