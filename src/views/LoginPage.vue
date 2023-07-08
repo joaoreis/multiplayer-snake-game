@@ -75,12 +75,11 @@ const criarSala = async () => {
 
 // Production
 // eslint-disable-next-line no-undef
-state.socket = io("https://fangandfriends-west.onrender.com");
-// state.socket = io("https://fangandfriends-backend.onrender.com");
+state.socket = io("http://fangandfriends.sa-east-1.elasticbeanstalk.com/");
 
 // Local development
 // eslint-disable-next-line no-undef
-// state.socket = io("http://localhost:3030");
+// state.socket = io("http://localhost:8080/");
 
 state.socket.on("joinedLobby", function ({ lobbyId }) {
   setLobbyId(lobbyId);

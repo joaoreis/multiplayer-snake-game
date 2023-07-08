@@ -33,6 +33,6 @@
     "sass-loader": "^13.2.2"
   },
   "engines": {
-    "node": "~16"
+    "node": "~18"
   }
 }
