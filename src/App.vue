@@ -14,6 +14,6 @@ body {
   align-items: center;
   justify-content: center;
   height: 100vh;
-  background-color: rgb(230, 230, 230);
+  background-color: #17173dd0;
 }
 </style>
