@@ -6,18 +6,16 @@
       :width="boardSizePx()"
       :height="boardSizePx()"
     ></canvas>
-
     <div v-if="state.gameFinished" class="scores">
-      <div
-        v-for="(value, name, index) in state.gameScores"
-        :key="index"
-        class=""
-      >
-        Jogador: {{ name }} <br />Pontuação: {{ value }}
+      {{ mainPlayerWins ? "Parabéns, você GANHOU!" : "Você PERDEU!" }}
+      <div class="scores__points">
+        <span v-for="(value, name, index) in state.gameScores" :key="index">
+          Jogador: {{ name }} <br />Pontuação: {{ value }}
+        </span>
       </div>
     </div>
     <button v-if="!state.gameIsRunning" id="play-btn" v-on:click="startGame">
-      {{ isPlaying ? "Stop" : "Play" }}
+      {{ "Play" }}
     </button>
   </div>
 </template>
@@ -25,7 +23,14 @@
 <script setup>
 import constants from "@/utils/constants";
 import { useUserStore } from "@/storage/user";
-import { onMounted, defineProps, reactive, onBeforeMount, ref } from "vue";
+import {
+  onMounted,
+  defineProps,
+  reactive,
+  onBeforeMount,
+  ref,
+  defineEmits,
+} from "vue";
 import router from "@/router";
 
 class Canvas {
@@ -72,7 +77,7 @@ class MapGrid extends Canvas {
    */
   drawSnake(vertebraes, isMainPlayer) {
     let board = this.context;
-    board.fillStyle = isMainPlayer ? "#2b45a2" : "#986a60";
+    board.fillStyle = isMainPlayer ? "#3797f5" : "#ebff20d1";
 
     vertebraes.forEach(({ x, y }) => {
       board.fillRect(
@@ -82,7 +87,7 @@ class MapGrid extends Canvas {
         this.cellSize
       );
     });
-    board.fillStyle = "#00FF00";
+    board.fillStyle = isMainPlayer ? "#37d7f5" : "#ebfa40d1";
     board.fillRect(
       vertebraes[vertebraes.length - 1].x * this.cellSize,
       vertebraes[vertebraes.length - 1].y * this.cellSize,
@@ -135,7 +140,11 @@ const state = reactive({
   // lock: false,
 });
 
+const emits = defineEmits(["newScore"]);
+
 const userScore = ref(0);
+
+const mainPlayerWins = ref(false);
 
 socket.on("mapState", (mapState) => {
   if (!state.gameIsRunning) {
@@ -152,11 +161,13 @@ socket.on("mapState", (mapState) => {
 
   state.gameScores = mapState.scores;
   userScore.value = mapState.scores[nickname];
+  emits("newScore", userScore.value);
 });
 
-socket.on("gameFinished", () => {
+socket.on("gameFinished", (winner) => {
   state.gameIsRunning = false;
   state.gameFinished = true;
+  if (nickname === winner) mainPlayerWins.value = true;
   socket.close();
 });
 
@@ -212,15 +223,14 @@ const startGame = async () => {
 <style lang="scss">
 #snake-canvas {
   position: relative;
-  border: 1px solid #ccc;
   height: 100%;
-  background-color: rgb(248, 248, 248);
+  background-color: #101022;
 }
 
 .canvas {
   display: flex;
   flex-direction: column;
-  background-color: rgb(248, 248, 248);
+  background-color: #252551;
 }
 
 .scores {
@@ -229,10 +239,19 @@ const startGame = async () => {
   justify-content: flex-start;
   align-items: center;
   row-gap: 1rem;
-  padding-top: 3rem;
-  background-color: rgb(248, 248, 248);
+  color: rgba(255, 255, 255, 0.801);
+  background-color: #252551;
   height: 600px;
   width: 600px;
+  padding: 2rem 2rem;
+  padding-top: 3rem;
+
+  &__points {
+    display: flex;
+    column-gap: 3rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
 #play-btn {
@@ -244,7 +263,8 @@ const startGame = async () => {
   left: 50%;
   height: 4rem;
   padding: 0 1.5rem;
-  background-color: #f7f6f6;
+  background-color: rgba(57, 57, 129, 0.534);
+  color: white;
   border: 2px solid #a6a6a6;
   border-radius: 5px;
   -moz-box-shadow: 0 0 3px #ccc;
@@ -253,7 +273,7 @@ const startGame = async () => {
   transform: translate(-50%, -50%);
 
   &:hover {
-    background-color: #a6a6a6;
+    background-color: rgba(26, 26, 56, 0.5254901961);
   }
 }
 </style>
