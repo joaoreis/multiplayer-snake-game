@@ -9,6 +9,8 @@ COPY ["package.json", "package-lock*.json", "./"]
 COPY ["nginx.conf", "./"]
 COPY . .
 RUN yarn
+RUN yarn run build
+RUN ls -la dist
 
 # production stage
 FROM nginx:stable-alpine as production-stage
