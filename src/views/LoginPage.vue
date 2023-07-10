@@ -83,6 +83,10 @@ state.socket = io("http://ec2-15-228-3-72.sa-east-1.compute.amazonaws.com", {
   path: "/socket.io/",
 });
 
+// Local development
+// eslint-disable-next-line no-undef
+// state.socket = io("http://localhost:8080/");
+
 state.socket.on("joinedLobby", function ({ lobbyId }) {
   setLobbyId(lobbyId);
   router.push({ name: "game" });

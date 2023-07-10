@@ -164,10 +164,10 @@ socket.on("mapState", (mapState) => {
   emits("newScore", userScore.value);
 });
 
-socket.on("gameFinished", (winner) => {
+socket.on("gameFinished", ({ gameLoser }) => {
   state.gameIsRunning = false;
   state.gameFinished = true;
-  if (nickname === winner) mainPlayerWins.value = true;
+  if (nickname !== gameLoser) mainPlayerWins.value = true;
   socket.close();
 });
 
@@ -188,7 +188,6 @@ onBeforeMount(() => {
 });
 
 const onKeyPress = (event) => {
-  // if (state.lock) return;
   const newDirection = constants.find((c) => c.keyCode === event.keyCode);
 
   if (!newDirection) {
