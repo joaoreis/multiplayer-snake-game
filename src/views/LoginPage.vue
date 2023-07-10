@@ -79,7 +79,7 @@ const criarSala = async () => {
 
 // Production
 // eslint-disable-next-line no-undef
-state.socket = io("http://localhost:3000");
+state.socket = io("http://localhost:5000");
 
 // Local development
 // eslint-disable-next-line no-undef
