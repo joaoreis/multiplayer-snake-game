@@ -77,9 +77,9 @@ const criarSala = async () => {
   setSocket(state.socket);
 };
 
-// Production
+// Local development
 // eslint-disable-next-line no-undef
-state.socket = io("http://localhost:5000");
+state.socket = io("http://localhost/socket.io/");
 
 // Local development
 // eslint-disable-next-line no-undef
