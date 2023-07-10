@@ -77,16 +77,25 @@ class MapGrid extends Canvas {
    */
   drawSnake(vertebraes, isMainPlayer) {
     let board = this.context;
-    board.fillStyle = isMainPlayer ? "#3797f5" : "#ebff20d1";
 
     vertebraes.forEach(({ x, y }) => {
+      board.fillStyle = "rgba(255, 255, 255, 0.801)";
       board.fillRect(
         x * this.cellSize,
         y * this.cellSize,
         this.cellSize,
         this.cellSize
       );
+      board.fillStyle = isMainPlayer ? "#3797f5" : "#ebff20d1";
+
+      board.fillRect(
+        x * this.cellSize + 1,
+        y * this.cellSize + 1,
+        this.cellSize - 2,
+        this.cellSize - 2
+      );
     });
+
     board.fillStyle = isMainPlayer ? "#37d7f5" : "#ebfa40d1";
     board.fillRect(
       vertebraes[vertebraes.length - 1].x * this.cellSize,
