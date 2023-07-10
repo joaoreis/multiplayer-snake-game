@@ -81,6 +81,10 @@ const criarSala = async () => {
 // eslint-disable-next-line no-undef
 state.socket = io("http://localhost/socket.io/");
 
+// Local development
+// eslint-disable-next-line no-undef
+// state.socket = io("http://localhost:8080/");
+
 state.socket.on("joinedLobby", function ({ lobbyId }) {
   setLobbyId(lobbyId);
   router.push({ name: "game" });
