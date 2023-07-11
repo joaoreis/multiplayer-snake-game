@@ -1,3 +1,4 @@
+<!--suppress SpellCheckingInspection -->
 <template>
   <section class="login canvas">
     <div class="login__header">
@@ -103,16 +104,6 @@ state.socket.on("tooManyPlayers", () => {
 </script>
 
 <style lang="scss" scoped>
-.container {
-  padding: 4% 8%;
-  height: 100vh;
-  width: 100vw;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #414160;
-}
-
 .login {
   font-family: "Courier New", Courier, monospace;
   border: 2px solid #9898bb;

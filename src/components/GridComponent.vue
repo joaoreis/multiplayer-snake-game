@@ -65,14 +65,9 @@ class MapGrid extends Canvas {
   clear() {
     this.context.clearRect(0, 0, this.boardSizePx, this.boardSizePx);
   }
-  middleCell() {
-    let middleX = Math.round(this.boardSize.x / 2);
-    let middleY = Math.round(this.boardSize.y / 2);
 
-    return new Coordinates(middleX, middleY);
-  }
   /**
-   * @param {Coordinates} vertebraes
+   * @param { Array } vertebraes
    * @param {boolean} isMainPlayer
    */
   drawSnake(vertebraes, isMainPlayer) {
@@ -120,10 +115,6 @@ class MapGrid extends Canvas {
     this.context.fillStyle = "red";
     this.context.fill();
     this.context.closePath();
-  }
-  stop() {
-    this.running = false;
-    this.clear();
   }
 }
 
@@ -210,7 +201,6 @@ const sendKeyPressedToSocket = async (keyPress) => {
   const body = {
     userId: nickname,
     userMovement: keyPress,
-    timeStamp: Date.now(),
   };
 
   socket.emit("move", body);
@@ -251,8 +241,7 @@ const startGame = async () => {
   background-color: #252551;
   height: 600px;
   width: 600px;
-  padding: 2rem 2rem;
-  padding-top: 3rem;
+  padding: 3rem 2rem 2rem;
 
   &__points {
     display: flex;
