@@ -40,6 +40,7 @@ const speed = 12;
   border: 2px solid #9898bb;
   font-size: 24px;
   background-color: #1a1a3886;
+  caret-color: transparent;
   border-radius: 10px;
   overflow: hidden;
   &__header {

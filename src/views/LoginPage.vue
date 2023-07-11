@@ -120,6 +120,7 @@ state.socket.on("tooManyPlayers", () => {
   background-color: #1a1a3886;
   border-radius: 10px;
   overflow: hidden;
+  caret-color: transparent;
   width: 600px;
   height: 600px;
   &__header {
@@ -161,6 +162,7 @@ state.socket.on("tooManyPlayers", () => {
         padding: 0 0.5rem;
         background-color: #383880;
         width: 100%;
+        caret-color: white;
         border-radius: 5px;
         color: white;
       }
@@ -182,6 +184,7 @@ state.socket.on("tooManyPlayers", () => {
       height: 3rem;
       font-size: 20px;
       color: white;
+      caret-color: transparent;
       background-color: #383880;
       border: solid 1px rgb(97, 97, 159);
       width: 100%;
