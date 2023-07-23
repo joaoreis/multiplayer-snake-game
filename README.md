@@ -24,7 +24,7 @@ O projeto foi desenvolvido utilizando Vue.js, uma estrutura JavaScript progressi
 
 ## Como rodar localmente
 
-1. Certifique-se de que o backend do jogo esteja rodando localmente. Se você ainda não configurou o backend, siga as instruções no [repositório do backend](https://github.com/joaoreis/multiplayer-snake-game-backend) para configurá-lo corretamente.
+1. Certifique-se de que o backend do jogo esteja rodando localmente. Se você ainda não configurou o backend, siga as instruções no [repositório do backend](https://github.com/joaoreis/multiplayer-snake-game-backend#readme) para configurá-lo corretamente.
 2. Clone este repositório: `git clone https://github.com/joaoreis/multiplayer-snake-game.git`.
 3. Navegue até o diretório do projeto: `cd multiplayer-snake-game`.
 4. Instale as dependências: `npm install`.
