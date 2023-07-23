@@ -2,7 +2,9 @@
 
 [Jogar Fang and Friends](http://ec2-15-228-3-72.sa-east-1.compute.amazonaws.com/#/)
 
-![FangAndFriends Gameplay](gameplaymedia/gameplay.mp4)
+
+![FangAndFriends Gameplay](https://github.com/joaoreis/multiplayer-snake-game/assets/857735/6922fdae-02c5-43c1-b6e0-5317825b8b29)
+
 
 Este é o repositório do frontend do jogo "FangAndFriends" - um jogo da cobrinha multiplayer.
 O projeto foi desenvolvido utilizando Vue.js, uma estrutura JavaScript progressiva para a construção de interfaces de usuário.
