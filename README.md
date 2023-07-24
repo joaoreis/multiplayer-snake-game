@@ -29,4 +29,4 @@ O projeto foi desenvolvido utilizando Vue.js, uma estrutura JavaScript progressi
 3. Navegue até o diretório do projeto: `cd multiplayer-snake-game`.
 4. Instale as dependências: `npm install`.
 5. Inicie o servidor local: `npm run serve`.
-6. Acesse o jogo em seu navegador através do endereço: `http://localhost:5000`
+6. Acesse o jogo em seu navegador através do endereço: `http://localhost:8080`
